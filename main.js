@@ -26,10 +26,12 @@ function createMainWindow() {
 function createAboutWindow() {
   // Create the browser window.
   const aboutWindow = new BrowserWindow({
-    name: "Image Resizer",
+    name: "About Image Resizer",
     width: 300,
     height: 300,
     webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });
