@@ -1,6 +1,7 @@
 const os = require("os");
 const path = require("path");
-const { contextBridge } = require("electron");
+const Toastify = require("toastify-js");
+const { contextBridge, ipcRenderer } = require("electron");
 /**
  * The preload script runs before. It has access to web APIs
  * as well as Electron's renderer process modules and some
@@ -19,23 +20,20 @@ const { contextBridge } = require("electron");
 //   }
 // })
 
-contextBridge.exposeInMainWorld("versions", {
-  node: () => process.versions.node,
-  chrome: () => process.versions.chrome,
-  electron: () => process.versions.electron,
+contextBridge.exposeInMainWorld("os", {
+  homeDir: () => os.homedir(),
+  // node: () => process.versions.node,
+  // chrome: () => process.versions.chrome,
+  // electron: () => process.versions.electron,
   // we can also expose variables, not just functions
 });
-// contextBridge.exposeInMainWorld("os", {
-//   homeDir: () => os.homedir(),
-//   // node: () => process.versions.node,
-//   // chrome: () => process.versions.chrome,
-//   // electron: () => process.versions.electron,
-//   // we can also expose variables, not just functions
-// });
-// contextBridge.exposeInMainWorld("path", {
-//   join: (...args) => path.join(...args),
-//   // node: () => process.versions.node,
-//   // chrome: () => process.versions.chrome,
-//   // electron: () => process.versions.electron,
-//   // we can also expose variables, not just functions
-// });
+contextBridge.exposeInMainWorld("path", {
+  join: (...args) => path.join(...args),
+});
+contextBridge.exposeInMainWorld("Toastify", {
+  toast: (params) => Toastify(params).showToast(),
+});
+contextBridge.exposeInMainWorld("ipcRenderer", {
+  send: (channel, data) => ipcRenderer.send(channel, data),
+  on: (channel, func) => ipcRenderer.on(channel, (e, ...args) => func(...args)),
+});

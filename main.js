@@ -1,15 +1,23 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain, shell } = require("electron");
 const path = require("path");
+const os = require("os");
+const fs = require("fs");
+const ResizeImg = require("resize-img");
 const isDev = process.env.NODE_ENV !== "production";
 const isMac = process.platform === "darwin";
+console.dir(process.env);
+
+let mainWindow;
 function createMainWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     name: "Image Resizer",
     width: isDev ? 1000 : 500,
     height: 500,
     webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });
@@ -23,6 +31,7 @@ function createMainWindow() {
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 }
+
 function createAboutWindow() {
   // Create the browser window.
   const aboutWindow = new BrowserWindow({
@@ -75,12 +84,39 @@ app.whenReady().then(() => {
   createMainWindow();
   const mainMenu = Menu.buildFromTemplate(menu);
   Menu.setApplicationMenu(mainMenu);
+  mainWindow.on("closed", () => (mainWindow = null));
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
   });
 });
+
+// respond to ipcRenderer resize
+ipcMain.on("image:resize", (e, options) => {
+  // console.dir(options);
+  options.dest = path.join(os.homedir(), "imageresizer");
+  resizeImage(options);
+});
+
+//
+const resizeImage = async ({ imagePath, width, height, dest }) => {
+  try {
+    const newPath = await ResizeImg(fs.readFileSync(imagePath), {
+      width: +width,
+      height: +height,
+    });
+    const fileName = path.basename(imagePath);
+    if (!fs.existsSync(dest)) {
+      fs.mkdirSync(dest);
+    }
+    fs.writeFileSync(path.join(dest, fileName), newPath);
+    mainWindow.webContents.send("image:done");
+    shell.openPath(dest);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

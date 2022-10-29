@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="script-scr 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -26,6 +26,7 @@
           <img src="./images/logo.svg" width="32" />
           <span class="mt-2 leading-normal">Select an image to resize</span>
           <input id="img" type="file" class="hidden" />
+          <img src="" alt="preview image"  class="rounded-lg hidden" id="preview">
         </label>
       </div>
 
